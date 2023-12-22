@@ -13,7 +13,7 @@ const uri = process.env.DB_URI;
 const corsOptions = {
   origin: ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
-  optionSuccessStatus: 200, 
+  optionSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
@@ -46,6 +46,9 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const usersCollection = client.db('jobtas1').collection('users');
+    const tasksCollection = client.db('jobtas1').collection('tasks');
+
+
     // auth related api
     app.post('/jwt', async (req, res) => {
       const user = req.body
@@ -95,13 +98,24 @@ async function run() {
         options
       )
       res.send(result)
-    })
-  
+    });
     // users
     app.get('/users', verifyToken, async (req, res) => {
       const result = await usersCollection.find().toArray()
       res.send(result);
     })
+    // Save task
+    app.post('/tasks', verifyToken, async (req, res) => {
+      const task = req.body;
+      const result = await tasksCollection.insertOne(task);
+      res.send(result);
+    });
+
+    // Get tasks
+    app.get('/tasks',verifyToken, async (req, res) => {
+      const result = await tasksCollection.find().toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     /* await client.db('admin').command({ ping: 1 })
