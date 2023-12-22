@@ -112,10 +112,27 @@ async function run() {
     });
 
     // Get tasks
-    app.get('/tasks',verifyToken, async (req, res) => {
+    app.get('/tasks', verifyToken, async (req, res) => {
       const result = await tasksCollection.find().toArray();
       res.send(result);
     });
+    // Delete task
+    app.delete('/tasks/:taskId', verifyToken, async (req, res) => {
+      const taskId = req.params.taskId;
+
+      try {
+        const result = await tasksCollection.deleteOne({ _id: ObjectId(taskId) });
+        if (result.deletedCount === 1) {
+          res.send({ success: true, message: 'Task deleted successfully' });
+        } else {
+          res.status(404).send({ success: false, message: 'Task not found' });
+        }
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ success: false, message: 'Internal server error' });
+      }
+    });
+
 
     // Send a ping to confirm a successful connection
     /* await client.db('admin').command({ ping: 1 })
